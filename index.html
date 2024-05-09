@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>World</title>
+  </head>
+ 
+  <body onload="main()">
+
+    <div style="position: relative; left: 000px;" > 
+    <canvas id="webgl" width="400" height="400">
+    Please use a browser that supports "canvas"
+    </canvas>
+
+    <p id="numdot">XXX<p>
+    <div>
+
+    <div style="position: relative; left: 500px; top:-400px" > 
+    <p>
+    Animation:
+    <button type="button" id="Animation_ON">ON</button>
+    <button type="button" id="Animation_OFF">OFF</button>
+    <p>
+    <!--
+    <button type="button" id="draw">Draw</button>
+    <p>
+    <button type="button" id="pointButton">Point</button>
+    <button type="button" id="triangleButton">Triangle</button>
+    <button type="button" id="circleButton">Circle</button>
+    <p>
+    -->
+    <p>
+    Mouth open <input type="range" min="0" max="90" value="0" class="slider" id="Mouthopen">
+    <p>
+    Rotate Head <input type="range" min="0" max="90" value="0" class="slider" id="RotateHead">
+    <p>
+    Rotate Neck<input type="range" min="0" max="90" value="0" class="slider" id="RotateNeck">
+    <p>
+    Rotate Mid Body<input type="range" min="0" max="90" value="0" class="slider" id="RotateBody">
+    <p>
+    Rotate Tail<input type="range" min="0" max="90" value="0" class="slider" id="RotateTail">
+    <p>  
+    Camera Angle X<input type="range" min="0" max="360" value="0" class="slider" id="angleslider_x">
+    <p>
+    </div>
+
+    <div style="position: relative; left: 800px; top:-600px" > 
+
+      <p>
+        Rotate Back Leg Right<input type="range" min="-90" max="90" value="0" class="slider" id="back_leg_1">
+        <p>
+        Rotate Back Leg Left<input type="range" min="-90" max="90" value="0" class="slider" id="back_leg_2">
+        <p>
+        Rotate Front Leg Right<input type="range" min="-90" max="90" value="0" class="slider" id="front_leg_1">
+        <p>  
+        Rotate Front Leg Left<input type="range" min="-90" max="90" value="0" class="slider" id="front_leg_2">
+      <p>
+
+    <div>
+
+
+
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix.js"></script>
+    <script src="Point.js"></script>
+    <script src="Triangle.js"></script>
+    <script src="Circle.js"></script>
+    <script src="Cube.js"></script>
+    <script src="World.js"></script>
+  </body>
+</html>
