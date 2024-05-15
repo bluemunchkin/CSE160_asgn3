@@ -22,6 +22,7 @@ var FSHADER_SOURCE =`
   uniform vec4 u_FragColor;  // uniform
   uniform sampler2D u_Sampler0;
   uniform sampler2D u_Sampler1;
+  uniform sampler2D u_Sampler2;
   uniform int u_whichTexture;
   void main() {
 
@@ -36,6 +37,9 @@ var FSHADER_SOURCE =`
 
     } else if(u_whichTexture == 1){
       gl_FragColor = texture2D(u_Sampler1, v_UV);
+
+    }else if(u_whichTexture == 2){
+      gl_FragColor = texture2D(u_Sampler2, v_UV);
 
     }else{
       gl_FragColor = vec4(1,.2,.2,1);
@@ -54,7 +58,9 @@ let u_ProjectionMatrix
 let u_ViewMatrix
 let u_Sampler0;
 let u_Sampler1;
+let u_Sampler2;
 let u_whichTexture;
+let cam = new Camera();
 
 function setupWebGL(){
   // Retrieve <canvas> element
@@ -127,6 +133,13 @@ function connectVariablesToGLSL(){
     return false
   }
 
+  // Get the storage location of the u_Sampler2
+  u_Sampler2 = gl.getUniformLocation(gl.program, 'u_Sampler2'); 
+  if(!u_Sampler2){
+    console.log('Failed to get location of u_Sampler2')
+    return false
+  }
+
   // Get the storage location of the u_whichTexture
   u_whichTexture = gl.getUniformLocation(gl.program, 'u_whichTexture'); 
   if(!u_whichTexture){
@@ -159,22 +172,23 @@ function connectVariablesToGLSL(){
 //const TRIANGLE =1
 //const CIRCLE =2
 //global ui
-let g_selectedColor =[1.0,1.0,1.0,1.0];
-let g_selectedSize = 5;
-let g_globalAngle = 0;
-let RotateBody = 0;
-let RotateNeck = 0;
-let RotateHead = 0;
-let Mouthopen = 0;
-let RotateTail =0;
-let back_leg_1 =0;
-let back_leg_2 =0; 
-let front_leg_1 =0;
+//let g_selectedColor =[1.0,1.0,1.0,1.0];
+//let g_selectedSize = 5;
+
+let RotateBody = -40;
+let RotateNeck = 20;
+let RotateHead = 30;
+let Mouthopen = 10;
+let RotateTail =40;
+let back_leg_1 =40;
+let back_leg_2 =20; 
+let front_leg_1 =-80;
 let front_leg_2 =0;
 let animation = false;
 //let g_selectedType = POINT
-
+  /*
 function addActionsforHtmlUI(){
+
   //button
   document.getElementById("Animation_ON").onclick = function(){ animation=true;renderALLshapes();}
   document.getElementById("Animation_OFF").onclick = function(){ animation=false;renderALLshapes();}
@@ -193,8 +207,9 @@ function addActionsforHtmlUI(){
   document.getElementById("back_leg_2").addEventListener("mouseup", function(){  back_leg_2= this.value;renderALLshapes(); }) 
   document.getElementById("front_leg_1").addEventListener("mousemove", function(){ front_leg_1= this.value;renderALLshapes(); })
   document.getElementById("front_leg_2").addEventListener("mousemove", function(){ front_leg_2= this.value;renderALLshapes();})
+  
 };
-
+*/
 function initTextures(){
 
   var texture = gl.createTexture(); // Create a texture object
@@ -211,7 +226,7 @@ function initTextures(){
   // Register the event handler to be called on loading an image
   image.onload = function(){ sendTextureToGLSL( image,texture,u_Sampler0,0); };
   // Tell the browser to load an image
-  image.src = 'smallFace.jpg'; 
+  image.src = 'bricksRed.png'; 
 
 
   var texture2 = gl.createTexture(); // Create a texture object
@@ -229,7 +244,25 @@ function initTextures(){
    // Register the event handler to be called on loading an image
   image2.onload = function(){ sendTextureToGLSL( image2,texture2,u_Sampler1,1); };
    // Tell the browser to load an image
-  image2.src = 'smallFace2.jpg'; 
+  image2.src = 'bricksGreen.png'; 
+
+
+  var texture3 = gl.createTexture(); // Create a texture object
+  if(!texture3){
+    console.log('Failed to create the texture object')
+    return false
+  } 
+
+  var image3 = new Image(); // Create an image object  
+  if(!image3){
+    console.log('Failed to get create the image object')
+    return false
+  }
+
+   // Register the event handler to be called on loading an image
+  image3.onload = function(){ sendTextureToGLSL( image3,texture3,u_Sampler2,2); };
+   // Tell the browser to load an image
+  image3.src = 'tv.png'; 
 
   return true;
   } 
@@ -240,8 +273,10 @@ function initTextures(){
   // Enable the texture unit 0
   if (texunit == 0) {
     gl.activeTexture(gl.TEXTURE0);
-    } else {
+    } else if(texunit == 1){
     gl.activeTexture(gl.TEXTURE1);
+  } else{
+    gl.activeTexture(gl.TEXTURE2);
   }
   //gl.activeTexture(gl.TEXTURE0);
   // Bind the texture object to the target
@@ -257,25 +292,30 @@ function initTextures(){
 
 function main() {
   
+  mapinit();
   //canvas
   setupWebGL();
   //GLSL shader
   connectVariablesToGLSL();
   //button
-  addActionsforHtmlUI();
+  //addActionsforHtmlUI();
 
   initTextures();
   
   // Register function (event handler) to be called on a mouse press
   //canvas.onmousedown = click;
-  canvas.onmousedown = function(ev){ if(ev.buttons == 1){ clickdown(ev)}};
-  canvas.onmousemove = function(ev){ if(ev.buttons == 1){ click(ev)}};
-  canvas.onmouseup = function(ev){ if(ev.buttons == 1){ clickup(ev)}};
+  //canvas.onmousedown = function(ev){ if(ev.buttons == 1){ clickdown(ev)}};
+  //canvas.onmousemove = function(ev){ if(ev.buttons == 1){ click(ev)}};
+  //canvas.onmouseup = function(ev){ if(ev.buttons == 1){ clickup(ev)}};
+  canvas.onmousemove = function(ev){MouseTrack(ev)};
 
   document.onkeydown = keydown;
 
+
   // Specify the color for clearing <canvas>
-  gl.clearColor(0.5, 0.8, 1.0, 1.0);
+  //gl.clearColor(0.5, 0.8, 1.0, 1.0);
+  gl.clearColor(0.9, 0.8, 4.0, 1.0);
+
 
   // Clear <canvas>
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -312,43 +352,25 @@ let last_y =0;
 let shiftanimation= false;
 let oppening =false
 
-//let drag = false;
 
-function clickdown(ev){
-
-  if(ev.shiftKey){
-    shiftanimation = true;
-    oppening = true;
-  }
-
-
+function MouseTrack(ev){
+  
+  //xy of mouse 
   let [x,y] = convertCoordinatesEventToGL(ev);
-  last_x=x
+
+  var dx=  60*(last_x-x)
+  var dy=  60*(last_y-y)
+
   last_y=y
-}
-
-function clickup(ev){
-  let [x,y] = convertCoordinatesEventToGL(ev);
   last_x=x
-  last_y=y
-}
+  cam.mosuepanX(dx)
+  cam.mosuepanY(dy)
+  
 
-function click(ev) {
-
-let [x,y] = convertCoordinatesEventToGL(ev);
-var dx=  10*(x-last_x)
-var dy=  10*(y-last_y)
-g_globalAngle_x = g_globalAngle_x + dx
-g_globalAngle_y = g_globalAngle_y + dy
-
-renderALLshapes();
-
-//console.log("x" + x + "y"+ y)
-//console.log("dyx" + dx + "dy"+ dy)
-//console.log("global_x: " + g_globalAngle_x + " global_y:"+ g_globalAngle_y)
-//console.log(typeof g_globalAngle_x);
 
 }
+
+
 
 function convertCoordinatesEventToGL(ev){
   var x = ev.clientX; // x coordinate of a mouse pointer
@@ -401,23 +423,118 @@ function shiftAnimation(){
 }
 
 function keydown(ev){
-  var d = 0.2
+  //var d = 0.2
   //w
-  if (ev.keyCode = 87){}
+  if (ev.keyCode == 87){
+    cam.forward()
+  }
   //s
-  else if(ev.keyCode = 83){}
+  else if(ev.keyCode == 83){
+    cam.back()
+  }
   //a
-  if (ev.keyCode = 65){}
+  else if (ev.keyCode == 65){
+    cam.left()
+  }
   //d
-  else if(ev.keyCode = 68){}
+  else if(ev.keyCode == 68){
+    cam.right()
+  }
   //q
-  if (ev.keyCode = 81){}
+  else if (ev.keyCode == 81){
+    cam.panLeft()
+  }
   //e
-  else if(ev.keyCode = 69){}
+  else if(ev.keyCode == 69){
+    cam.panRight()
+  }
+  else if(ev.keyCode == 67){
+    placeblock()
+  }
+  else if(ev.keyCode == 88){
+    deleteblock()
+  }
+
+}
+/*
+let wall=[1,1,1,1,1]
+let nothing=[0,0,0,0,0]
+//var wall=nothing
+let allWall=[wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall,wall]
+let sideWall=[wall,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,nothing,wall]
+let g_map = [allWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,sideWall,allWall]
+*/
+let g_map=[]
+function mapinit(){
+
+  var allWall=[]
+  var sideWall=[]
+  for (var x = 0; x < 32; x++){
+    allWall[x]=[1,1,1,1,1];
+  }
+  for (var x = 0; x < 32; x++){
+    sideWall[x]=[0,0,0,0,0];
+  }
+  sideWall[0]=[1,1,1,1,1];
+  sideWall[31]=[1,1,1,1,1];
+
+  for (var x = 0; x < 32; x++){
+    g_map[x]= structuredClone(sideWall);
+  }
+
+  g_map[0]=structuredClone(allWall);
+  g_map[31]=structuredClone(allWall);
 
 }
 
 
+
+function drawmap(){
+  var Cubes = new Cube();
+  Cubes.textureNUm=0;
+  Cubes.matrix.scale(0.5,0.5,0.5)
+  for (var x = 0; x < 32; x++){
+    for(var z = 0; z<32; z++){
+      for(var y=0;y<5; y++){
+        if(g_map[x][z][y]==1){
+        
+          Cubes.matrix.translate(x-16,y-1.5,z-16)
+          Cubes.renderFast()
+          Cubes.matrix.translate(-(x-16),-(y-1.5),-(z-16))
+        }
+      }
+    }
+  }
+}
+
+function placeblock(){
+
+  //console.log(  cam.eye.elements)
+  x= Math.floor(cam.eye.elements[0]*2 +16)
+  y= Math.floor(cam.eye.elements[1] +1)
+  z= Math.floor(cam.eye.elements[2]*1.25 +16)
+
+  
+  if( g_map[x][z][y]==0){
+    
+    g_map[x][z][y]=1
+  }
+  
+  //g_map[20][20][2]=1
+
+}
+
+function deleteblock(){
+  x= Math.floor(cam.eye.elements[0]*2 +16)
+  y= Math.floor(cam.eye.elements[1] +1)
+  z= Math.floor(cam.eye.elements[2]*1.25 +16)
+
+  
+  if( g_map[x][z][y]==1){
+    
+    g_map[x][z][y]=0
+  }
+}
 
 
 function renderALLshapes(){
@@ -437,7 +554,7 @@ function renderALLshapes(){
   gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
 
   var viewMat= new Matrix4()
-  viewMat.setLookAt(0,0,4, 0,0,-100, 0,1,0)
+  viewMat.setLookAt(cam.eye.elements[0],cam.eye.elements[1],cam.eye.elements[2], cam.at.elements[0],cam.at.elements[1],cam.at.elements[2], cam.up.elements[0],cam.up.elements[1],cam.up.elements[2])
   gl.uniformMatrix4fv(u_ViewMatrix, false, viewMat.elements);
 
   
@@ -445,15 +562,25 @@ function renderALLshapes(){
   gl.clear(gl.COLOR_BUFFER_BIT)
 
 
+  drawmap();
 
-
+  
   //CUBE 1
   var Cube1 = new Cube();
   Cube1.color = [0.8,0.3,0.2,1.0]
-  Cube1.matrix.translate(-1,-0.2,0.0)
-  Cube1.textureNUm = -2;
+  Cube1.matrix.translate(-.33,-0.7,0.0)
+  Cube1.textureNUm = 1;
   Cube1.matrix.scale(0.5,0.5,0.5)
   Cube1.render()
+
+  //tv
+  var tv = new Cube();
+  tv.color = [0.8,0.3,0.2,1.0]
+  tv.matrix.translate(.5,-0.7,0.0)
+  tv.textureNUm = 2;
+  tv.matrix.scale(0.5,0.5,0)
+  tv.render()
+  /*
 
   //CUBE 2
   var Cube2 = new Cube();
@@ -469,35 +596,36 @@ function renderALLshapes(){
   Cube3.matrix.translate(1,-0.2,0.0)
   Cube3.matrix.scale(0.5,0.5,0.5)
   Cube3.render()
-
+*/
 
   //Floor
   var floor = new Cube();
-  floor.color = [0.2,0.5,0.3,1.0]
-  floor.textureNUm = -2;
+  floor.color = [0.09,0.015,0.14,1.0]
+  floor.textureNUm=0;
   floor.matrix.translate(0.0,-0.75,0.0)
-  floor.matrix.scale(10,0,10)
+  floor.matrix.scale(32,0,32)
   floor.matrix.translate(-0.5,0.0,-0.5)
   floor.render()
 
   //sky box
 
   var sky = new Cube();
-  sky.color = [0.5, 0.8, 1.0, 1.0]
+  //sky.color = [0.5, 0.8, 1.0, 1.0]
+  sky.color =[0.09,0.015,0.14,1.0]
   sky.textureNUm = -2;
   sky.matrix.scale(50,50,50)
   sky.matrix.translate(-0.5,-0.5,-0.5)
   sky.render()
 
 
-  /*
+ 
 
   //body main
   var body_top = new Cube();
   body_top.color = [0.3,0.8,0.2,1.0]
   body_top.mouth = [0.3,0.8,0.2,1.0]
   body_top.matrix.rotate(RotateBody,1.0,0.0,0.0)
-  body_top.matrix.rotate(180,0,1,0)
+  //body_top.matrix.rotate(180,0,1,0)
   var body_top_mat = new Matrix4(body_top.matrix);
   body_top.matrix.translate(-0.2,-0.2,0.0)
   body_top.matrix.scale(0.25,0.05,0.25)
@@ -692,7 +820,7 @@ function renderALLshapes(){
   head_bottom.matrix.translate(-0.025,0.2,0.5)
   head_bottom.matrix.scale(0.2,0.045,0.25)
   head_bottom.render_tri(.25,.25,true)
-  */
+
 
   var duration = performance.now() - startTime_render;
   sendTextToHTML("ms: " + Math.floor(duration) + "fps: " + Math.floor(10000/duration),"numdot")

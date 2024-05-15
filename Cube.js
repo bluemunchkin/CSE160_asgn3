@@ -3,10 +3,53 @@ class Cube{
       this.type='cube';
       //this.position =[0.0,0.0,0.0]
       this.color =[1.0,1.0,1.0,1.0]
+      this.mouth =[1.0,1.0,1.0,1.0]
       //this.size = 5.0;
       //this.segments = 10;
       this.matrix = new Matrix4();
-      this.textureNUm = 0;
+      this.textureNUm = -2;
+
+      this.cubearray=[
+      0,0,0, 1,1,0, 1,0,0,
+      0,0,0, 0,1,0, 1,1,0,
+
+      0,0,1, 0,1,1, 1,1,1,
+      0,0,1, 1,0,1, 1,1,1,
+
+      0,1,0, 0,1,1, 1,1,1,
+      0,1,0, 1,1,0, 1,1,1,
+
+      0,0,0, 0,0,1, 1,0,1,
+      0,0,0, 1,0,0, 1,0,1,
+
+      0,0,0, 0,1,0, 0,1,1,
+      0,0,0, 0,0,1, 0,1,1,
+
+      1,0,0, 1,1,0, 1,1,1,
+      1,0,0, 1,0,1, 1,1,1
+ 
+      ]
+
+      this.uvarray=[
+        0,0, 1,1, 1,0,
+        0,0, 0,1, 1,1,
+
+        0,0, 0,1, 1,1,
+        0,0, 1,0, 1,1,
+
+        0,0, 0,1, 1,1,
+        0,0, 1,0, 1,1,
+
+        0,0, 0,1, 1,1,
+        0,0, 1,0, 1,1,
+
+        0,0, 0,1, 1,1,
+        0,0, 1,0, 1,1,
+        0,0, 0,1, 1,1,
+        0,0, 1,0, 1,1 
+
+      ]
+
     }
   
     //render shape
@@ -52,12 +95,50 @@ class Cube{
 
     }
 
+    renderFast(){
+
+      var rgba = this.color;
+      //testure num
+      gl.uniform1i(u_whichTexture,this.textureNUm)
+
+      //color of front and back
+      gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
+   
+       //pass matrix to 
+       gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements)
+      /*
+      var allverts=[];
+
+      allverts = allverts.concat([0,0,0, 1,1,0, 1,0,0]);
+      allverts = allverts.concat([0,0,0, 0,1,0, 1,1,0]);
+
+      allverts = allverts.concat([0,0,1, 0,1,1, 1,1,1]);
+      allverts = allverts.concat([0,0,1, 1,0,1, 1,1,1]);
+
+      allverts = allverts.concat([0,1,0, 0,1,1, 1,1,1]);
+      allverts = allverts.concat([0,1,0, 1,1,0, 1,1,1]);
+
+      allverts = allverts.concat([0,0,0, 0,0,1, 1,0,1]);
+      allverts = allverts.concat([0,0,0, 1,0,0, 1,0,1]);
+
+      allverts = allverts.concat([0,0,0, 0,1,0, 0,1,1]);
+      allverts = allverts.concat([0,0,0, 0,0,1, 0,1,1]);
+
+      allverts = allverts.concat([1,0,0, 1,1,0, 1,1,1]);
+      allverts = allverts.concat([1,0,0, 1,0,1, 1,1,1]);
+      */
+ 
+      FastdrawTriangle3DUV(this.cubearray,this.uvarray);
+  }
+
+
+
     //render shape
     render_tri(side,top,flip){
         // side and top 
 
         var rgba = this.color;
-        var mouth = this.color;
+        var mouth = this.mouth;
 
         //pass matrix to 
         gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements)
